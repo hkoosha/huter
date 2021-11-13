@@ -1,0 +1,84 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'distribution'
+    id 'maven-publish'
+}
+
+group = 'com.trivago.huter'
+version = '1.0'
+
+application {
+    //noinspection GroovyAccessibility,GroovyAssignabilityCheck
+    mainClass = 'com.trivago.huter.DummyRunner3'
+    applicationDefaultJvmArgs += [
+            '-Xmx2048m',
+            '-Xms2048m',
+    ]
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    def hiveVersion = '3.1.2'
+    def tezVersion = '0.9.2'
+
+    implementation project(':huter-common')
+
+    implementation "org.apache.hive:hive-exec:$hiveVersion:core"
+    implementation "org.apache.hive:hive-cli:$hiveVersion"
+    implementation "org.apache.hive:hive-metastore:$hiveVersion"
+
+    implementation "org.apache.tez:tez-api:$tezVersion"
+    implementation "org.apache.tez:tez-runtime-library:$tezVersion"
+    implementation "org.apache.tez:tez-dag:$tezVersion"
+    implementation "org.apache.tez:tez-mapreduce:$tezVersion"
+}
+
+configurations.all {
+    exclude group: 'ch.qos.logback', module: 'logback-classic'
+    exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
+    exclude group: 'org.pentaho', module: 'pentaho-aggdesigner-algorithm'
+}
+
+task sourceJar(type: Jar) {
+    classifier 'sources'
+    from sourceSets.main.allJava
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            pom {
+                name = 'Huter Hive 3'
+                description = 'Hive Unit TEst Runner for Hive 3'
+                url = 'https://www.github.com/trivago/huter'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'hkoosha'
+                        name = 'Koosha Hosseiny'
+                        email = 'koosha.hosseiny@trivago.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/trivago/huter.git'
+                    developerConnection = 'scm:git:ssh://github.com/trivago/huter.git'
+                    url = 'https://github.com/trivago/huter'
+                }
+            }
+            groupId 'com.trivago.huter'
+            artifactId 'huter-hive3'
+            version version
+            from components.java
+            artifact tasks.sourceJar
+        }
+    }
+}

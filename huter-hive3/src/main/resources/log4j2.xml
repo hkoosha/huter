@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration status="ERROR">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p  %c{1} - %m%n"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Root level="error">
+            <AppenderRef ref="Console"/>
+        </Root>
+
+        <Logger name="org.apache.hadoop.hive.ql.parse.CalcitePlanner" level="off"/>
+        <Logger name="org.apache.hadoop.util.NativeCodeLoader" level="off"/>
+
+        <Logger name="CliDriver" level="warn"/>
+        <Logger name="SessionState" level="warn"/>
+        <Logger name="DataNucleus.Persistence" level="error"/>
+        <Logger name="org.apache" level="error"/>
+
+        <Logger name="parquet" level="off"/>
+        <Logger name="org.apache.parquet.hadoop.ColumnChunkPageWriteStore" level="off"/>
+        <Logger name="org.apache.tez.common.TezUtilsInternal" level="error"/>
+        <Logger name="AM" level="error"/>
+
+        <Logger name="org.apache.hadoop.hive.metastore.ObjectStore" level="error"/>
+
+        <Logger name="com.trivago" level="info"/>
+    </Loggers>
+</Configuration>

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -euo pipefail
+
+/opt/huter/bin/hive-unittest-runner $@
+OK=$?
+
+if [[ $OK -eq 0 ]]; then
+  echo -e "\n\n\n"
+  echo '==========================================='
+  echo '================= ALL OK =================='
+  exit 0
+else
+  echo -e "\n\n\n"
+  echo '==========================================='
+  echo '=============== TEST FAILED ==============='
+  exit 1
+fi

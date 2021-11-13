@@ -1,0 +1,4 @@
+rootProject.name = 'huter'
+include('huter-common')
+include('huter-hive2')
+include('huter-hive3')

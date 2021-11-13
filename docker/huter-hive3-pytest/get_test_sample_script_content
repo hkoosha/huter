@@ -1,0 +1,4 @@
+#!/bin/bash
+set -euo pipefail
+
+cat /sample/test_sample_script.py
