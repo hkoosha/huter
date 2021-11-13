@@ -6,13 +6,13 @@ SQL-only unit test framework for Hive!
 The idea is to have the least amount of impact on the SQL scripts themselves. Although the default runner expects a certain structure imposed on the script files and the directories they reside in, you can implement your Runner, adapted to your desired directory structure.
 
 Huter follows the usual testing frameworks structure (e.g. JUnit), thus we have:
-Framework guiding points.
-Unit to be tested.
-Test cases.
-Mocked environment.
-Test data.
-Unit evaluation.
-Assertions.
+- Framework guiding points.
+- Unit to be tested.
+- Test cases.
+- Mocked environment.
+- Test data.
+- Unit evaluation.
+- Assertions.
 
 These elements can be laid out like the following:
 
