@@ -1,7 +1,7 @@
 package io.koosha.huter.main;
 
+import io.koosha.huter.internal.HuterFiles;
 import io.koosha.huter.runner.RepoRunner;
-import io.koosha.huter.util.HuterUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static io.koosha.huter.util.HuterUtil.freezer;
+import static io.koosha.huter.internal.HuterCollections.freezer;
 
 public final class HuterRepoMain {
 
@@ -40,7 +40,7 @@ public final class HuterRepoMain {
             throw new IllegalArgumentException("expecting only one argument referring to repo directory, got: " + args.length);
 
         final String repoDir = args[0];
-        if (!HuterUtil.isDir(repoDir))
+        if (!HuterFiles.isDir(repoDir))
             throw new IOException("given path does not exist or is not a directory: " + repoDir);
 
         final List<Object[]> run;

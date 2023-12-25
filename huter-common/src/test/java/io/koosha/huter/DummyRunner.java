@@ -1,7 +1,7 @@
 package io.koosha.huter;
 
+import io.koosha.huter.internal.HuterFiles;
 import io.koosha.huter.main.HuterMain;
-import io.koosha.huter.util.HuterUtil;
 
 import java.nio.file.Paths;
 
@@ -20,7 +20,7 @@ public final class DummyRunner {
 
     public static void main(final String... args) {
         try {
-            HuterUtil.deleteDir(Paths.get(TARGET));
+            HuterFiles.deleteDir(Paths.get(TARGET));
         }
         catch (final Exception ignore) {
         }

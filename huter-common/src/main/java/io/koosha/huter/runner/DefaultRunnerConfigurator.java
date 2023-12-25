@@ -24,6 +24,7 @@ final class DefaultRunnerConfigurator {
 
     static void configureHive(final HuterContext ctx,
                               final HiveConf hc) {
+
         hc.setVar(HiveConf.ConfVars.METASTORE_SCHEMA_VERIFICATION, "false");
         hc.setVar(HiveConf.ConfVars.METASTORE_FASTPATH, "true");
         hc.set("javax.jdo.option.ConnectionURL", ctx.getConnectionStr());
@@ -46,6 +47,7 @@ final class DefaultRunnerConfigurator {
     }
 
     static void configureHiveExperimentalOptions(final HiveConf hc) {
+
         // setMetastoreProperty(hiveConf, "metastore.filter.hook", DefaultMetaStoreFilterHookImpl.class.getName());
         // setMetastoreProperty(hiveConf, "datanucleus.connectiondrivername", jdbcDriver);
         // setMetastoreProperty(hiveConf, "javax.jdo.option.ConnectionDriverName", jdbcDriver);
@@ -78,13 +80,14 @@ final class DefaultRunnerConfigurator {
 
         //noinspection SpellCheckingInspection
         ClassLoader
-            .getSystemClassLoader()
-            .setPackageAssertionStatus("org.apache.hadoop.hive.serde2.objectinspector", false);
+                .getSystemClassLoader()
+                .setPackageAssertionStatus("org.apache.hadoop.hive.serde2.objectinspector", false);
 
         hc.setBoolVar(HiveConf.ConfVars.HIVE_SUPPORT_CONCURRENCY, false);
     }
 
     static void configureFs(final HiveConf hc, final HuterContext ctx) {
+
         hc.set("fs.defaultFS", "file:///");
         hc.set("fs.default.name", "file:///");
         hc.set(HiveConf.ConfVars.HIVE_JAR_DIRECTORY.varname, "file://" + ctx.getHiveJarDir());
@@ -100,6 +103,7 @@ final class DefaultRunnerConfigurator {
     }
 
     static void configureTez(final HiveConf hc) {
+
         hc.set("hive.tez.container.size", "1024");
         hc.setBoolean(TezConfiguration.TEZ_LOCAL_MODE, true);
         hc.setBoolean(TezRuntimeConfiguration.TEZ_RUNTIME_OPTIMIZE_LOCAL_FETCH, true);
@@ -115,6 +119,7 @@ final class DefaultRunnerConfigurator {
     }
 
     static void configureDerby(@SuppressWarnings("unused") final HiveConf hc) {
+
         final File derbyLogFile;
         try {
             derbyLogFile = File.createTempFile("derby", ".log");

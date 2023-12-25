@@ -1,7 +1,7 @@
 package io.koosha.huter.runner;
 
-import io.koosha.huter.util.CloseableManager;
-import io.koosha.huter.util.HuterUtil;
+import io.koosha.huter.internal.CloseableManager;
+import io.koosha.huter.internal.HuterFiles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.koosha.huter.util.HuterUtil.freeze;
+import static io.koosha.huter.internal.HuterCollections.freeze;
 
 public final class RepoRunner extends CloseableManager implements HuterRunner {
 
@@ -32,6 +32,7 @@ public final class RepoRunner extends CloseableManager implements HuterRunner {
     private final Path outSubDir;
 
     public RepoRunner(final String hadoopWfDir) {
+
         this.hadoopWfDir = Paths.get(hadoopWfDir);
         this.testSubDir = this.hadoopWfDir.resolve(REPO_RUNNER_TEST_DIR_NAME);
         this.outSubDir = this.testSubDir.resolve(REPO_RUNNER_OUT_DIR);
@@ -39,6 +40,7 @@ public final class RepoRunner extends CloseableManager implements HuterRunner {
 
     @Override
     public List<Object[]> run() throws Exception {
+
         final List<String> errors = new ArrayList<>();
         this.executeTestSuits(errors);
 
@@ -49,17 +51,18 @@ public final class RepoRunner extends CloseableManager implements HuterRunner {
 
 
     private void executeTestSuits(Collection<String> errors) throws Exception {
+
         final Collection<Path> testSuits;
         try (final Stream<Path> walk = Files.walk(this.testSubDir)) {
             testSuits = walk
-                .filter(it -> {
-                    final Path potentialQueryFile = this.hadoopWfDir.resolve(this.testSubDir.relativize(it));
-                    final boolean potentialQueryFileIsFile = Files.isRegularFile(potentialQueryFile);
-                    final boolean testLocationIsDir = Files.isDirectory(it);
-                    return testLocationIsDir && potentialQueryFileIsFile;
-                })
-                .peek(path -> LOG.trace("found potential test suit: {}", path))
-                .collect(Collectors.toList());
+                    .filter(it -> {
+                        final Path potentialQueryFile = this.hadoopWfDir.resolve(this.testSubDir.relativize(it));
+                        final boolean potentialQueryFileIsFile = Files.isRegularFile(potentialQueryFile);
+                        final boolean testLocationIsDir = Files.isDirectory(it);
+                        return testLocationIsDir && potentialQueryFileIsFile;
+                    })
+                    .peek(path -> LOG.trace("found potential test suit: {}", path))
+                    .collect(Collectors.toList());
         }
 
         LOG.trace("executing test suits: {}", testSuits);
@@ -71,10 +74,11 @@ public final class RepoRunner extends CloseableManager implements HuterRunner {
 
     private void executeTestSuit(final Collection<String> errors,
                                  final Path testSuitBaseDir) throws Exception {
-        LOG.info("executing test suit={}", testSuitBaseDir);
-        HuterUtil.assertIsAbsolute(testSuitBaseDir);
 
-        final List<Path> testModules = HuterUtil.subDirectoriesOf(testSuitBaseDir);
+        LOG.info("executing test suit={}", testSuitBaseDir);
+        HuterFiles.assertIsAbsolute(testSuitBaseDir);
+
+        final List<Path> testModules = HuterFiles.subDirectoriesOf(testSuitBaseDir);
         for (final Path testModule : testModules)
             this.executeTestModule(errors, testSuitBaseDir, testModule);
     }
@@ -82,11 +86,12 @@ public final class RepoRunner extends CloseableManager implements HuterRunner {
     private void executeTestModule(final Collection<String> errors,
                                    final Path testSuit,
                                    final Path testModule) throws Exception {
+
         LOG.info("executing test module={}", testModule);
 
-        final List<Path> testCases = HuterUtil.subFilesOf(testModule, path ->
-            path.getFileName().toString().toLowerCase().startsWith("test")
-                && path.getFileName().toString().toLowerCase().endsWith(".hql"));
+        final List<Path> testCases = HuterFiles.subFilesOf(testModule, path ->
+                path.getFileName().toString().toLowerCase().startsWith("test")
+                        && path.getFileName().toString().toLowerCase().endsWith(".hql"));
 
         for (final Path testCase : testCases)
             this.executeTestCase(errors, testSuit, testModule, testCase);
@@ -96,6 +101,7 @@ public final class RepoRunner extends CloseableManager implements HuterRunner {
                                  final Path testSuit,
                                  final Path testModule,
                                  final Path testCase) throws Exception {
+
         final HuterContext ctx = this.createCtx(testSuit, testModule, testCase);
 
         final List<Object[]> result;
@@ -111,13 +117,30 @@ public final class RepoRunner extends CloseableManager implements HuterRunner {
     private HuterContext createCtx(final Path testSuit,
                                    final Path testModule,
                                    final Path validatorScript) throws Exception {
+
+        final HuterContext ctx = this.initCtx(testSuit, testModule, validatorScript);
+
+        this.initParameters(ctx, testSuit, testModule);
+        this.initTable(ctx, testSuit);
+        this.initSetup(ctx, testSuit, testModule);
+        this.initSetup(ctx, testSuit, testModule);
+
+        return ctx;
+    }
+
+    private HuterContext initCtx(
+            Path testSuit,
+            Path testModule,
+            Path validatorScript) throws IOException {
+
         final Path dataDir = this.outSubDir.resolve(this.testSubDir.relativize(testModule));
 
         final HuterContext ctx = new HuterContext(
-            this.hadoopWfDir,
-            validatorScript.toString(),
-            validatorScript.getFileName().toString().replace(".hql", "")
+                this.hadoopWfDir,
+                validatorScript.toString(),
+                validatorScript.getFileName().toString().replace(".hql", "")
         );
+
         ctx.setOutDir(this.outSubDir);
         ctx.setTableDefinitionsRootDir(this.hadoopWfDir);
         ctx.setHiveBaseDir(this.outSubDir);
@@ -125,6 +148,13 @@ public final class RepoRunner extends CloseableManager implements HuterRunner {
         ctx.setDataDir(dataDir.resolve("table_data"));
         ctx.setQueryFile(this.hadoopWfDir.resolve(this.testSubDir.relativize(testSuit)));
         ctx.setTestQueryFile(validatorScript);
+
+        return ctx;
+    }
+
+    private void initParameters(HuterContext ctx,
+                                Path testSuit,
+                                Path testModule) {
 
         // parameters.ini file.
         try {
@@ -139,6 +169,9 @@ public final class RepoRunner extends CloseableManager implements HuterRunner {
         catch (final IOException e) {
             LOG.warn("could not load parameters file, ignoring: {}", e.getMessage());
         }
+    }
+
+    private void initTable(HuterContext ctx, Path testSuit) {
 
         // Tables file.
         try {
@@ -147,6 +180,11 @@ public final class RepoRunner extends CloseableManager implements HuterRunner {
         catch (final IOException e) {
             LOG.warn("could not load tables file, ignoring: {}", e.getMessage());
         }
+    }
+
+    private void initSetup(HuterContext ctx,
+                           Path testSuit,
+                           Path testModule) {
 
         // Setup file.
         try {
@@ -161,8 +199,6 @@ public final class RepoRunner extends CloseableManager implements HuterRunner {
         catch (final IOException e) {
             LOG.warn("could not load setup file, ignoring: {}", e.getMessage());
         }
-
-        return ctx;
     }
 
 }

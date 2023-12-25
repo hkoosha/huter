@@ -2,8 +2,8 @@ package io.koosha.huter.runner;
 
 import io.koosha.huter.TableLocationFixerHook;
 import io.koosha.huter.component.ComponentCreatorHub;
-import io.koosha.huter.util.CloseableManager;
-import io.koosha.huter.util.HuterUtil;
+import io.koosha.huter.internal.CloseableManager;
+import io.koosha.huter.internal.HuterFiles;
 import org.apache.hadoop.hive.cli.CliDriver;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.Deadline;
@@ -21,12 +21,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public final class DefaultRunner extends CloseableManager implements HuterRunner {
@@ -39,12 +34,14 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
     private final ComponentCreatorHub componentCreatorHub;
 
     public DefaultRunner(final HuterContext ctx) {
-        this.ctx = Objects.requireNonNull(ctx);
+
+        this.ctx = Objects.requireNonNull(ctx, "ctx can not be null");
 
         this.componentCreatorHub = new ComponentCreatorHub(path ->
-            HuterUtil.readFile(path.isAbsolute()
-                ? path
-                : ctx.getTableDefinitionsRootDir().resolve(path)));
+                HuterFiles.readFile(path.isAbsolute()
+                        ? path
+                        : ctx.getTableDefinitionsRootDir().resolve(path))
+        );
     }
 
     @Override
@@ -86,10 +83,12 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
     }
 
     private void initMetastore() throws Exception {
+
         final String[] sql = String.join("\n", Files.readAllLines(
-            Paths.get("/opt/hive3/scripts/metastore/upgrade/derby/hive-schema-3.1.0.derby.sql")))
-                                   .replace("\"APP\".", "")
-                                   .split(";");
+                        Paths.get("/opt/hive3/scripts/metastore/upgrade/derby/hive-schema-3.1.0.derby.sql")))
+                .replace("\"APP\".", "")
+                .split(";");
+
         try (final Connection conn = DriverManager.getConnection(this.ctx.getConnectionStr())) {
             for (final String s : sql) {
                 try (final Statement stmt = conn.createStatement()) {
@@ -100,11 +99,12 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
     }
 
     private void initDirs() throws IOException {
-        HuterUtil.ensureDirectories(this.ctx.getOutDir());
-        HuterUtil.ensureDirectories(this.ctx.getHiveJarDir());
+        HuterFiles.ensureDirectories(this.ctx.getOutDir());
+        HuterFiles.ensureDirectories(this.ctx.getHiveJarDir());
     }
 
     private void initConfigureHive() {
+
         LOG.info("configuring hive");
         this.ctx.setHiveConf(new HiveConf());
         final HiveConf hc = this.ctx.getHiveConf();
@@ -122,11 +122,13 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
     }
 
     private void initDeadline() throws MetaException {
+
         Deadline.registerIfNot(Integer.MAX_VALUE);
         Deadline.startTimer("something");
     }
 
     private void initSession() throws HiveSQLException {
+
         this.ctx.init(this.ctx.getHiveConf());
         this.addClosable(this.ctx);
 
@@ -141,12 +143,13 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
 
     @SuppressWarnings("SpellCheckingInspection")
     private void initCleanAndFixUpMetaStore() throws SQLException {
+
         try (final Connection conn = DriverManager.getConnection(this.ctx.getConnectionStr());
              final Statement stmt = conn.createStatement()) {
             stmt.execute(
-                "ALTER TABLE APP.COLUMNS_V2 " +
-                    "ALTER COLUMN COMMENT " +
-                    "SET DATA TYPE varchar(8096)");
+                    "ALTER TABLE APP.COLUMNS_V2 " +
+                            "ALTER COLUMN COMMENT " +
+                            "SET DATA TYPE varchar(8096)");
         }
 
         // final List<String> tablesToTruncate = new ArrayList<>();
@@ -175,23 +178,27 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
     }
 
     private void initUpdateParametersInHiveSession(final Properties properties) {
-        final HashMap<String, String> asStringMap = new HashMap<>();
+
+        final Map<String, String> asStringMap = new HashMap<>();
         properties.forEach((key, value) -> asStringMap.put(key.toString(), value.toString()));
         this.ctx.getCurrentSessionState().setHiveVariables(asStringMap);
     }
 
     private void initSetCliDriver() {
+
         this.ctx.setDriver(new CliDriver());
     }
 
     // ---------------------------------------------------------------- EXECUTE
 
     private void createComponents() throws Exception {
+
         for (final String table : this.ctx.getTables())
             this.componentCreatorHub.createComponent(this.ctx, this.ctx.getDataDir(), table);
     }
 
     private void setup() throws HiveSQLException {
+
         for (final String setup : this.ctx.getSetupFilesContent()) {
             final List<Object[]> result = this.ctx.executeSql(setup);
             LOG.debug("setup result: {}", result);
@@ -199,6 +206,7 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
     }
 
     private void execute() throws HiveSQLException {
+
         if (!ctx.getQuery().isPresent())
             return;
 
@@ -208,18 +216,22 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
     }
 
     private List<Object[]> test() throws HiveSQLException {
+
         if (!ctx.getTestQuery().isPresent())
             return Collections.emptyList();
 
         final List<Object[]> result = this.ctx.executeSql(this.ctx.getTestQuery().get());
         LOG.debug("test query result: {}", result);
+
         this.ctx.setTestResult(result.stream()
-                                     .map(Object[]::clone)
-                                     .collect(Collectors.toList()));
+                .map(Object[]::clone)
+                .collect(Collectors.toList()));
+
         return result;
     }
 
     private void write() throws IOException {
+
         if (!this.ctx.getLogDir().isPresent()) {
             LOG.info("not persisting any output as logDir is not set");
             return;
@@ -237,10 +249,12 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
                 .writeUtf8("\n================> RESULT [")
                 .writeUtf8(ctx.getName())
                 .writeUtf8("] ================>\n");
+
         for (final Object[] objects : ctx.getTestResult())
             this.ctx.getHuterOutput()
                     .writeUtf8(Arrays.toString(objects))
                     .writeUtf8("\n");
+
         this.ctx.getHuterOutput()
                 .writeUtf8("\n\n")
                 .writeUtf8("================> END [")
@@ -248,10 +262,11 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
                 .writeUtf8("] ===================>\n");
 
         final String target = HUTER_OUTPUT_FILE
-            + "__"
-            + ctx.getShortName()
-            + ".txt";
-        HuterUtil.appendToFile(ctx.getHuterOutput(), logDir, target);
+                + "__"
+                + ctx.getShortName()
+                + ".txt";
+
+        HuterFiles.appendToFile(ctx.getHuterOutput(), logDir, target);
     }
 
 }

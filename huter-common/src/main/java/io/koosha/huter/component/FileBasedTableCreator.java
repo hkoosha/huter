@@ -2,7 +2,7 @@ package io.koosha.huter.component;
 
 import io.koosha.huter.TableLocationFixerHook;
 import io.koosha.huter.runner.HuterContext;
-import io.koosha.huter.util.PathToContentFun;
+import io.koosha.huter.internal.PathToContentFun;
 import org.apache.hive.service.cli.HiveSQLException;
 
 import java.io.IOException;
@@ -17,6 +17,7 @@ final class FileBasedTableCreator implements ComponentCreator {
                        final PathToContentFun reader,
                        final Path dataPath,
                        final String param) throws HiveSQLException, IOException {
+
         final Path loc = dataPath.resolve(param);
         TableLocationFixerHook.prepareAndRememberNextTable(loc);
 

@@ -1,10 +1,11 @@
 package io.koosha.huter.main;
 
+import io.koosha.huter.internal.HuterFiles;
 import io.koosha.huter.runner.DefaultResultValidator;
 import io.koosha.huter.runner.DefaultRunner;
 import io.koosha.huter.runner.HuterRunner;
 import io.koosha.huter.runner.HuterContext;
-import io.koosha.huter.util.HuterUtil;
+import io.koosha.huter.internal.HuterThrowables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +26,7 @@ public final class HuterMain {
 
 
     public static void main(final String... args) {
+
         Thread.currentThread().setName(HuterMain.class.getSimpleName());
 
         final List<String> errors;
@@ -48,6 +50,7 @@ public final class HuterMain {
     }
 
     public static Result run(final String... args) throws Options.OptionsException {
+
         final HuterContext ctx;
         try {
             ctx = createContext(args);
@@ -57,7 +60,7 @@ public final class HuterMain {
         }
         catch (final Throwable e) {
             LOG.error("error", e);
-            return Result.create(null, "huter_error: " + HuterUtil.getMessage(e));
+            return Result.create(null, "huter_error: " + HuterThrowables.getMessage(e));
         }
 
         final List<Object[]> result;
@@ -66,7 +69,7 @@ public final class HuterMain {
         }
         catch (final Throwable e) {
             LOG.error("error", e);
-            return Result.create(ctx, "huter_error: " + HuterUtil.getMessage(e));
+            return Result.create(ctx, "huter_error: " + HuterThrowables.getMessage(e));
         }
 
         final List<String> errors = DefaultResultValidator.getInstance().apply(ctx.getName(), result);
@@ -96,7 +99,7 @@ public final class HuterMain {
                 .stream()
                 .flatMap(it -> {
                     try {
-                        return HuterUtil.readAllLines(it).stream();
+                        return HuterFiles.readAllLines(it).stream();
                     }
                     catch (final IOException e) {
                         throw new UncheckedIOException(e);

@@ -1,7 +1,7 @@
 package io.koosha.huter.component;
 
 import io.koosha.huter.runner.HuterContext;
-import io.koosha.huter.util.PathToContentFun;
+import io.koosha.huter.internal.PathToContentFun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +29,7 @@ public final class ComponentCreatorHub {
     public void createComponent(final HuterContext ctx,
                                 final Path dataPath,
                                 final String definition) throws Exception {
+
         if (definition.trim().startsWith(COMMENT_SEPARATOR_REGEX) || definition.trim().isEmpty())
             return;
 
@@ -44,12 +45,12 @@ public final class ComponentCreatorHub {
         switch (type.toUpperCase()) {
             case "DATABASE":
                 this.dbCreator.create(ctx, this.reader, dataPath,
-                    param.trim().split(COMMENT_SEPARATOR_REGEX)[0].trim());
+                        param.trim().split(COMMENT_SEPARATOR_REGEX)[0].trim());
                 break;
 
             case "FUNCTION":
                 this.functionCreator.create(ctx, this.reader, dataPath,
-                    param.trim().split(COMMENT_SEPARATOR_REGEX)[0].trim());
+                        param.trim().split(COMMENT_SEPARATOR_REGEX)[0].trim());
                 break;
 
             case "TABLEFILE":
@@ -57,7 +58,7 @@ public final class ComponentCreatorHub {
             case "TABLE":
             case "FILE":
                 this.fileBasedTableCreator.create(ctx, this.reader, dataPath,
-                    param.trim().split(COMMENT_SEPARATOR_REGEX)[0].trim());
+                        param.trim().split(COMMENT_SEPARATOR_REGEX)[0].trim());
                 break;
 
             default:
@@ -66,6 +67,7 @@ public final class ComponentCreatorHub {
     }
 
     private ComponentCreator findComponentCreator(final String type) {
+
         final Class<?> handlerClass;
         try {
             handlerClass = Class.forName(type);

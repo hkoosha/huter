@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-import static io.koosha.huter.util.HuterUtil.filter;
-import static io.koosha.huter.util.HuterUtil.freezer;
+import static io.koosha.huter.internal.HuterCollections.filter;
+import static io.koosha.huter.internal.HuterCollections.freezer;
 
 @SuppressWarnings("unused")
 @CommandLine.Command(name = "HiveUnitTestRunner",
@@ -202,21 +202,21 @@ class Options implements Callable<Integer> {
 
     private static List<Path> toPath(final Collection<String> source) {
         return source.stream()
-                     .map(Paths::get)
-                     .collect(freezer());
+                .map(Paths::get)
+                .collect(freezer());
     }
 
     private static List<Path> nonExisting(final Collection<Path> source) {
         return source.stream()
-                     .filter(it -> !it.toFile().exists())
-                     .collect(freezer());
+                .filter(it -> !it.toFile().exists())
+                .collect(freezer());
     }
 
 
     static Options parseArgs(final String... args) throws OptionsException {
         final int execute = new CommandLine(new Options()).execute(args);
         final Options instance = Options.parsed.get();
-        Options.parsed.set(null);
+        Options.parsed.remove();
 
         if (execute != 0)
             throw new OptionsException("error parsing command line");
@@ -231,7 +231,7 @@ class Options implements Callable<Integer> {
     }
 
 
-    static final class OptionsException extends Exception {
+    public static final class OptionsException extends Exception {
         public OptionsException(final String message) {
             super(message);
         }

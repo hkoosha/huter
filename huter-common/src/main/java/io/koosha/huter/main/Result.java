@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static io.koosha.huter.util.HuterUtil.freeze;
-import static io.koosha.huter.util.HuterUtil.freezer;
+import static io.koosha.huter.internal.HuterCollections.freeze;
+import static io.koosha.huter.internal.HuterCollections.freezer;
 
 // Methods referenced from py4j
 @SuppressWarnings("unused")
@@ -34,9 +34,11 @@ public final class Result {
     private Result(final List<String> errors,
                    final List<Object[]> output,
                    final String huterOutput) {
-        this.output = output.stream()
-                            .map(Object[]::clone)
-                            .collect(freezer());
+
+        this.output = output
+                .stream()
+                .map(Object[]::clone)
+                .collect(freezer());
         this.errors = freeze(new ArrayList<>(errors));
         this.huterOutput = huterOutput;
     }
@@ -54,12 +56,22 @@ public final class Result {
     static Result create(final HuterContext ctx,
                          final List<Object[]> output,
                          final List<String> errors) {
-        return new Result(errors, output, ctx == null ? null : ctx.getHuterOutput().toString());
+
+        return new Result(
+                errors,
+                output,
+                ctx == null ? null : ctx.getHuterOutput().toString()
+        );
     }
 
     static Result create(final HuterContext ctx,
                          final String error) {
-        return create(ctx, Collections.emptyList(), Collections.singletonList(error));
+
+        return create(
+                ctx,
+                Collections.emptyList(),
+                Collections.singletonList(error)
+        );
     }
 
 }

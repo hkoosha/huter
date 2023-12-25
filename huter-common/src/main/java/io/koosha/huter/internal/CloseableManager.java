@@ -1,4 +1,4 @@
-package io.koosha.huter.util;
+package io.koosha.huter.internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ public abstract class CloseableManager implements AutoCloseable {
             }
             catch (final Throwable e) {
                 LOG.error("error closing closable in={} closable={}", getClass().getName(), closeable, e);
-                err = HuterUtil.merge(err, e);
+                err = HuterThrowables.merge(err, e);
             }
 
         closeables.clear();

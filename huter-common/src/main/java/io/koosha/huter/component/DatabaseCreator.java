@@ -1,7 +1,7 @@
 package io.koosha.huter.component;
 
 import io.koosha.huter.runner.HuterContext;
-import io.koosha.huter.util.PathToContentFun;
+import io.koosha.huter.internal.PathToContentFun;
 import org.apache.hive.service.cli.HiveSQLException;
 
 import java.nio.file.Path;
@@ -14,8 +14,11 @@ final class DatabaseCreator implements ComponentCreator {
                        final PathToContentFun reader,
                        final Path dataPath,
                        final String param) throws HiveSQLException {
+
         final String sql = "CREATE DATABASE IF NOT EXISTS " + param;
+
         final List<Object[]> result = ctx.executeSql(sql);
+
         if (!result.isEmpty())
             throw new HiveSQLException("create database must not return result", sql);
     }
