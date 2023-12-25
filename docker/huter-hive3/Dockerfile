@@ -1,5 +1,5 @@
 FROM openjdk:8
-LABEL maintainer="Koosha Hosseiny <koosha.hosseiny@trivago.com>"
+LABEL maintainer="Koosha Hosseiny <i@koosha.io>"
 
 COPY huter /opt/huter
 COPY huter-bin /tmp

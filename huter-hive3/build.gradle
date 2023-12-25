@@ -3,14 +3,14 @@ plugins {
     id 'application'
     id 'distribution'
     id 'maven-publish'
+    id 'signing'
 }
 
-group = 'com.trivago.huter'
-version = '1.0'
+group = 'io.koosha.huter'
+version = '2.0'
 
 application {
-    //noinspection GroovyAccessibility,GroovyAssignabilityCheck
-    mainClass = 'com.trivago.huter.DummyRunner3'
+    mainClass = 'io.koosha.huter.DummyRunner3'
     applicationDefaultJvmArgs += [
             '-Xmx2048m',
             '-Xms2048m',
@@ -37,15 +37,17 @@ dependencies {
     implementation "org.apache.tez:tez-mapreduce:$tezVersion"
 }
 
-configurations.all {
+configurations.configureEach {
     exclude group: 'ch.qos.logback', module: 'logback-classic'
     exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
     exclude group: 'org.pentaho', module: 'pentaho-aggdesigner-algorithm'
 }
 
-task sourceJar(type: Jar) {
-    classifier 'sources'
-    from sourceSets.main.allJava
+java {
+    withJavadocJar()
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 publishing {
@@ -54,7 +56,7 @@ publishing {
             pom {
                 name = 'Huter Hive 3'
                 description = 'Hive Unit TEst Runner for Hive 3'
-                url = 'https://www.github.com/trivago/huter'
+                url = 'https://www.github.com/hkoosha/huter'
                 licenses {
                     license {
                         name = 'The Apache License, Version 2.0'
@@ -65,20 +67,23 @@ publishing {
                     developer {
                         id = 'hkoosha'
                         name = 'Koosha Hosseiny'
-                        email = 'koosha.hosseiny@trivago.com'
+                        email = 'i@koosha.io'
                     }
                 }
                 scm {
-                    connection = 'scm:git:git://github.com/trivago/huter.git'
-                    developerConnection = 'scm:git:ssh://github.com/trivago/huter.git'
-                    url = 'https://github.com/trivago/huter'
+                    connection = 'scm:git:git://github.com/hkoosha/huter.git'
+                    developerConnection = 'scm:git:ssh://github.com/hkoosha/huter.git'
+                    url = 'https://github.com/hkoosha/huter'
                 }
             }
-            groupId 'com.trivago.huter'
+            groupId 'io.koosha.huter'
             artifactId 'huter-hive3'
             version version
             from components.java
-            artifact tasks.sourceJar
         }
     }
 }
+
+//signing {
+//    sign publishing.publications.mavenJava
+//}

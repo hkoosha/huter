@@ -1,6 +1,6 @@
 FROM huter-hive3
 
-LABEL maintainer="Koosha Hosseiny <koosha.hosseiny@trivago.com>"
+LABEL maintainer="Koosha Hosseiny <i@koosha.io>"
 
 RUN    sed -i 's/HuterMain/HuterRepoMain/g' /opt/huter/bin/huter-hive3
 

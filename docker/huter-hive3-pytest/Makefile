@@ -12,7 +12,7 @@ get-files: clean
 
 .PHONY: clean
 clean:
-	sudo rm -rf __pycache__
-	sudo rm -rf .pytest_cache
+	rm -rf __pycache__
+	rm -rf .pytest_cache
 	rm -rf ${CONFTEST_FILE}
 	rm -rf ${SAMPLE_FILE}

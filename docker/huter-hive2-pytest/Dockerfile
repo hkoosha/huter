@@ -1,6 +1,6 @@
 FROM huter-hive2
 
-LABEL maintainer="Koosha Hosseiny <koosha.hosseiny@trivago.com>"
+LABEL maintainer="Koosha Hosseiny <i@koosha.io>"
 
 ENV DEBIAN_FRONTEND noninteractive
 

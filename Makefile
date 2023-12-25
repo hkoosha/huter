@@ -4,13 +4,14 @@ publish-local:
 
 .PHONY: clean
 clean:
-	./gradlew clean
+	./gradlew --warning-mode all clean
 	cd docker && $(MAKE) clean
 
 .PHONY: build
 build:
-	./gradlew build -xdistTar -xdistZip
+	./gradlew --warning-mode all build -xdistTar -xdistZip
 
 .PHONY: dist
 dist:
-	./gradlew build -xdistZip
+	./gradlew --warning-mode all build -xdistZip
+

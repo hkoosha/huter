@@ -35,7 +35,7 @@ if ENV_VAR__SHOW_JVM_OUTPUT in os.environ:
 
 
 def get_entry_point(gateway):
-    return gateway.jvm.com.trivago.huter.main.SingleHiveUnitTestRunnerMain
+    return gateway.jvm.io.koosha.huter.main.SingleHiveUnitTestRunnerMain
 
 
 def _join(*path_pars: str) -> str:

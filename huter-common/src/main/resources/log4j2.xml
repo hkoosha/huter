@@ -27,6 +27,6 @@
 
         <Logger name="org.apache.hadoop.hive.metastore.ObjectStore" level="error"/>
 
-        <Logger name="com.trivago" level="info"/>
+        <Logger name="io.koosha" level="info"/>
     </Loggers>
 </Configuration>
