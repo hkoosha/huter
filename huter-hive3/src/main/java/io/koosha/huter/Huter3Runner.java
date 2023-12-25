@@ -10,9 +10,7 @@ public final class Huter3Runner {
 
     public static void main(final String... args) throws Exception {
 
-//        HuterRepoMain.main(args);
-
-        HuterRepoMain.main("/home/milan/git/huter/example/");
+        HuterRepoMain.main(args);
 
     }
 
