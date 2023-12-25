@@ -3,7 +3,7 @@ DOCKER_LABEL := "huter-hive3-pytest"
 CONFTEST_FILE := conftest.py
 SAMPLE_FILE := test_sample_script.py
 
-include ../Makefile.common
+include ../common.Makefile
 
 .PHONY: get-files
 get-files: clean

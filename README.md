@@ -24,12 +24,12 @@ These elements can be laid out like the following, with their number from list a
         └── wf_myWorkflow/                           # 1
             └── the_script_being_tested.hql/         # 2, unit.
                 ├── testRejectionOfDuplicates/       # 3, test case.
-                │   ├── parameters.ini		     # 4, mock env.
-                │   ├── setup.hql                    # 5, test data.
-                │   ├── test_0.hql                   # 7, assertions.
-                │   └── test_1.hql                   # 7
+                │   ├── parameters.ini               # 4, mock env.
+                │   ├── setup.hql                    # 5, test data.
+                │   ├── test_0.hql                   # 7, assertions.
+                │   └── test_1.hql                   # 7
                 ├── testSomethingElse/               # 2
-                │   └── test_0.hql                   # 7
+                │   └── test_0.hql                   # 7
                 ├── parameters.ini                   # 4
                 ├── setup.hql                        # 5
                 └── table_list.txt                   # 4

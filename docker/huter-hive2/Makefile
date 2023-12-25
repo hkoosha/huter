@@ -1,10 +1,10 @@
 DOCKER_LABEL := "huter-hive2"
 
-HUTER_FILE := huter-hive2-1.0
+HUTER_FILE := huter-hive2-2.0
 HUTER_ARCHIVE := "${HUTER_FILE}.tar"
 HUTER_FROM := "../../huter-hive2/build/distributions/${HUTER_ARCHIVE}"
 
-include ../Makefile.common
+include ../common.Makefile
 
 .PHONY: get-files
 get-files: clean

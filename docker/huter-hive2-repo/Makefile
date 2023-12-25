@@ -1,6 +1,6 @@
 DOCKER_LABEL := "huter-hive2-repo"
 
-include ../Makefile.common
+include ../common.Makefile
 
 .PHONY: get-files
 get-files:
