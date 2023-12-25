@@ -156,7 +156,7 @@ class HuterGateway:
                        you get empty result.
 
     h
-        # if the table_list.txt refers to a relative file, it is resolved according to this dir
+        # if the dependencies.txt refers to a relative file, it is resolved according to this dir
         # See Huter's doc for more info.
         .set_table_definitions_root("/some/path")
 
@@ -178,7 +178,7 @@ class HuterGateway:
 
         # The test tables list.
         # See Huter's doc for more info.
-        .add_table_file(my_root, workflow, "table_list.txt")
+        .add_table_file(my_root, workflow, "dependencies.txt")
 
         # A nice name that appears in the logs.
         .set_name("test_the_script")

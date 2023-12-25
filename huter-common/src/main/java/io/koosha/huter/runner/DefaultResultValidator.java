@@ -41,12 +41,15 @@ public final class DefaultResultValidator implements BiFunction<String, List<Obj
             }
         }
 
-        if (!foundAnyBool)
+        if (!foundAnyBool) {
             LOG.warn("======> TEST INVALID ======> test did not contain any boolean! " +
                             "test results are not reliable!!! {} -> [{}]",
                     name, results.stream().map(Arrays::toString).collect(Collectors.joining(";\n")));
-        else
+            return Collections.singletonList("test did not contain any boolean, test=" + name);
+        }
+        else {
             LOG.info("======> TEST SUCCEEDED ======> {}", name);
+        }
 
         return Collections.emptyList();
     }

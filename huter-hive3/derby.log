@@ -1,0 +1,13 @@
+----------------------------------------------------------------
+Mon Dec 25 10:15:19 CET 2023:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.1.0 - (1808820): instance a816c00e-018c-a041-dbbb-0000788bd120 
+on database directory memory:/home/milan/git/huter/huter-hive3/metastore_db_825c966e035e49d6 with class loader sun.misc.Launcher$AppClassLoader@4e0e2f2a 
+Loaded from file:/opt/milan/.gradle/caches/modules-2/files-2.1/org.apache.derby/derby/10.14.1.0/3bcd8b1af3f8cd022d54d331e00064776be04f9c/derby-10.14.1.0.jar
+java.vendor=Temurin
+java.runtime.version=1.8.0_392-b08
+user.dir=/home/milan/git/huter/huter-hive3
+os.name=Linux
+os.arch=amd64
+os.version=6.6.8-2-MANJARO
+derby.system.home=null
+Database Class Loader started - derby.database.classpath=''

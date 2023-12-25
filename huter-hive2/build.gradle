@@ -10,7 +10,7 @@ group = 'io.koosha.huter'
 version = '2.0'
 
 application {
-    mainClass = 'io.koosha.huter.DummyRunner2'
+    mainClass = 'io.koosha.huter.Huter2Runner'
     applicationDefaultJvmArgs += [
             '-Xmx2048m',
             '-Xms2048m',

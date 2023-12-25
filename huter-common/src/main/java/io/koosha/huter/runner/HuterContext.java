@@ -6,10 +6,13 @@ import io.koosha.huter.internal.HuterThrowables;
 import io.koosha.huter.internal.StringOutputStream;
 import org.apache.hadoop.hive.cli.CliDriver;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.ql.exec.tez.TezJobExecHelper;
+import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hive.service.cli.*;
 import org.apache.hive.service.server.HiveServer2;
+import org.datanucleus.api.jdo.JDOPersistenceManagerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -297,13 +300,15 @@ public final class HuterContext implements AutoCloseable {
     }
 
     public List<Object[]> getTestResult() {
-        return this.testResult.stream()
+        return this.testResult
+                .stream()
                 .map(Object[]::clone)
-                .collect(Collectors.toList());
+                .collect(freezer());
     }
 
     public void setTestResult(final List<Object[]> testResult) {
-        this.testResult = testResult.stream()
+        this.testResult = testResult
+                .stream()
                 .map(Object[]::clone)
                 .collect(Collectors.toList());
     }
@@ -311,20 +316,28 @@ public final class HuterContext implements AutoCloseable {
     // ------------------------------------------------------------------------
 
     public void init(final HiveConf hc) throws HiveSQLException {
+
         Objects.requireNonNull(hc);
 
         this.hiveServer2 = new HiveServer2();
-        hiveServer2.init(hc);
+        this.hiveServer2.init(hc);
 
-        this.client = hiveServer2.getServices()
+        this.client = this
+                .hiveServer2
+                .getServices()
                 .stream()
                 .filter(it -> it instanceof CLIService)
                 .map(it -> (CLIService) it)
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("could not find cli service"));
 
-        this.sessionHandle = client.openSession("noUser", "noPassword", null);
-        this.currentSessionState = client.getSessionManager()
+        this.sessionHandle = this
+                .client
+                .openSession("noUser", "noPassword", null);
+
+        this.currentSessionState = this
+                .client
+                .getSessionManager()
                 .getSession(sessionHandle)
                 .getSessionState();
     }
@@ -339,7 +352,19 @@ public final class HuterContext implements AutoCloseable {
     private List<Object[]> executeSql0(final String sql) throws HiveSQLException {
         final OperationHandle handle;
         try {
-            handle = client.executeStatement(sessionHandle, sql, new HashMap<>());
+            handle = this.client.executeStatement(sessionHandle, sql, new HashMap<>());
+
+            try {
+                final Map<String, ? super Object> props = new HashMap<>();
+                props.put("javax.jdo.option.ConnectionDriverName", "org.apache.derby.jdbc.EmbeddedDriver");
+                JDOPersistenceManagerFactory
+                        .getPersistenceManagerFactory(props)
+                        .getPersistenceManager()
+                        .currentTransaction()
+                        .commit();
+            }
+            catch (final Exception ignore) {
+            }
         }
         catch (HiveSQLException e) {
             LOG.error("statement failed: {}", sql.trim(), e);
@@ -349,7 +374,7 @@ public final class HuterContext implements AutoCloseable {
         final List<Object[]> resultSet = new ArrayList<>();
         if (handle.hasResultSet()) {
             RowSet rowSet;
-            while ((rowSet = client.fetchResults(handle)) != null && rowSet.numRows() > 0)
+            while ((rowSet = this.client.fetchResults(handle)) != null && rowSet.numRows() > 0)
                 for (final Object[] row : rowSet)
                     resultSet.add(row.clone());
         }
@@ -360,9 +385,9 @@ public final class HuterContext implements AutoCloseable {
     @Override
     public void close() throws Exception {
 
-        LOG.info("closing tez");
-
         Throwable t = null;
+
+        LOG.info("closing tez");
         try {
             TezJobExecHelper.killRunningJobs();
         }
@@ -371,14 +396,14 @@ public final class HuterContext implements AutoCloseable {
         }
 
         // Will mess up logging if uncommented.
-        // LOG.info("closing sessionHandle");
-        // if (this.client != null)
-        //     try {
-        //         this.client.closeSession(this.sessionHandle);
-        //     }
-        //     catch (final Throwable err) {
-        //         t = HuterUtil.merge(t, err);
-        //     }
+        LOG.info("closing sessionHandle");
+        if (this.client != null)
+            try {
+                this.client.closeSession(this.sessionHandle);
+            }
+            catch (final Throwable err) {
+                t = HuterThrowables.merge(t, err);
+            }
 
         LOG.info("closing currentSessionState");
         if (this.currentSessionState != null)
@@ -397,6 +422,23 @@ public final class HuterContext implements AutoCloseable {
             catch (final Throwable err) {
                 t = HuterThrowables.merge(t, err);
             }
+
+        LOG.info("closing MetaStore");
+        try {
+            final IMetaStoreClient msc = Hive.get().getMSC(true, false);
+            msc.close();
+        }
+        catch (final Throwable err) {
+            t = HuterThrowables.merge(t, err);
+        }
+
+        LOG.info("closing Hive");
+        try {
+            Hive.closeCurrent();
+        }
+        catch (final Throwable err) {
+            t = HuterThrowables.merge(t, err);
+        }
 
         this.client = null;
         this.hiveServer2 = null;
@@ -457,14 +499,14 @@ public final class HuterContext implements AutoCloseable {
         ret.add(line.substring(beginIndex));
 
         return ret.stream()
-                .map(String::trim)
-                .map(it -> it.endsWith(";") ? it.substring(0, it.length() - 1) : it)
-                .map(it -> Arrays.stream(it.split("\n"))
-                        .filter(it0 -> !it0.trim().startsWith("--"))
-                        .collect(Collectors.joining("\n"))
-                        .trim())
-                .filter(it -> !it.isEmpty())
-                .collect(freezer());
+                  .map(String::trim)
+                  .map(it -> it.endsWith(";") ? it.substring(0, it.length() - 1) : it)
+                  .map(it -> Arrays.stream(it.split("\n"))
+                                   .filter(it0 -> !it0.trim().startsWith("--"))
+                                   .collect(Collectors.joining("\n"))
+                                   .trim())
+                  .filter(it -> !it.isEmpty())
+                  .collect(freezer());
     }
 
 }

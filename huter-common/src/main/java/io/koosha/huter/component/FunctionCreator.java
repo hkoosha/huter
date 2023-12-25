@@ -1,7 +1,7 @@
 package io.koosha.huter.component;
 
-import io.koosha.huter.runner.HuterContext;
 import io.koosha.huter.internal.PathToContentFun;
+import io.koosha.huter.runner.HuterContext;
 import org.apache.hive.service.cli.HiveSQLException;
 
 import java.nio.file.Path;

@@ -1,0 +1,2 @@
+table tables/sample_table_0.hql
+table tables/sample_table_1.hql

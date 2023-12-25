@@ -5,16 +5,19 @@ import io.koosha.huter.main.HuterMain;
 
 import java.nio.file.Paths;
 
+/**
+ * See {@link io.koosha.huter.main.HuterRepoMain}.
+ */
 public final class DummyRunner3 {
     private DummyRunner3() {
     }
 
-    private static final String TARGET = "/tmp/huter";
+    private static final String TARGET = "/tmp/huter/test";
 
     private static final String[] ARGS = {
             "--root=" + TARGET,
             "--log-dir=" + TARGET + "/log",
-            "-q SELECT FALSE",
+            "-q SELECT TRUE",
             "-t SELECT TRUE"
     };
 

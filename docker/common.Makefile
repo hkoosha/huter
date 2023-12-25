@@ -1,4 +1,4 @@
-SOURCE_REPO ?= $(shell pwd)/../../../../hadoop-wf
+SOURCE_REPO ?= $(shell pwd)/../../../example
 
 DOCKER_WORKDIR ?= /repo
 

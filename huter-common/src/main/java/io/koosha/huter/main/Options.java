@@ -13,9 +13,11 @@ import static io.koosha.huter.internal.HuterCollections.filter;
 import static io.koosha.huter.internal.HuterCollections.freezer;
 
 @SuppressWarnings("unused")
-@CommandLine.Command(name = "HiveUnitTestRunner",
+@CommandLine.Command(
+        name = "HiveUnitTestRunner",
         mixinStandardHelpOptions = true,
-        version = "Huter 0.1")
+        version = "Huter 0.1"
+)
 class Options implements Callable<Integer> {
 
     private static final String DEFAULT_NAME = "unnamed";
@@ -26,66 +28,94 @@ class Options implements Callable<Integer> {
     }
 
 
-    @CommandLine.Option(names = {"--name", "-n"},
-            defaultValue = DEFAULT_NAME)
+    @CommandLine.Option(
+            names = {"--name", "-n"},
+            defaultValue = DEFAULT_NAME
+    )
     private String name;
 
 
-    @CommandLine.Option(names = {"--root", "-r"},
-            required = true)
+    @CommandLine.Option(
+            names = {"--root", "-r"},
+            required = true
+    )
     private String root;
 
 
-    @CommandLine.Option(names = {"--table-definitions-root", "-d"},
-            defaultValue = "")
+    @CommandLine.Option(
+            names = {"--table-definitions-root", "-d"},
+            defaultValue = ""
+    )
     private String tablesRoot;
 
 
-    @CommandLine.Option(names = {"--log-dir", "-g"},
-            defaultValue = "")
+    @CommandLine.Option(
+            names = {"--log-dir", "-g"},
+            defaultValue = ""
+    )
     private String logDir;
 
-    @CommandLine.Option(names = {"--query-file", "-Q"},
-            defaultValue = "")
+    @CommandLine.Option(
+            names = {"--query-file", "-Q"},
+            defaultValue = ""
+    )
     private String queryFile;
 
-    @CommandLine.Option(names = {"--query", "-q"},
-            defaultValue = "")
+    @CommandLine.Option(
+            names = {"--query", "-q"},
+            defaultValue = ""
+    )
     private String query;
 
-    @CommandLine.Option(names = {"--test-query-file", "-T"},
-            defaultValue = "")
+    @CommandLine.Option(
+            names = {"--test-query-file", "-T"},
+            defaultValue = ""
+    )
     private String testQueryFile;
 
-    @CommandLine.Option(names = {"--test-query", "-t"},
-            defaultValue = "")
+    @CommandLine.Option(
+            names = {"--test-query", "-t"},
+            defaultValue = ""
+    )
     private String testQuery;
 
 
-    @CommandLine.Option(names = {"--setup-file", "-S"},
-            defaultValue = "")
+    @CommandLine.Option(
+            names = {"--setup-file", "-S"},
+            defaultValue = ""
+    )
     private List<String> setupFiles;
 
-    @CommandLine.Option(names = {"--setup-query", "-s"},
-            defaultValue = "")
+    @CommandLine.Option(
+            names = {"--setup-query", "-s"},
+            defaultValue = ""
+    )
     private List<String> setupQueries;
 
 
-    @CommandLine.Option(names = {"--component-file", "-L"},
-            defaultValue = "")
+    @CommandLine.Option(
+            names = {"--component-file", "-L"},
+            defaultValue = ""
+    )
     private List<String> componentsFiles;
 
-    @CommandLine.Option(names = {"--component-query", "-l"},
-            defaultValue = "")
+    @CommandLine.Option(
+            names = {"--component-query", "-l"},
+            defaultValue = ""
+    )
     private List<String> componentsQueries;
 
 
-    @CommandLine.Option(names = {"--param-file", "-P"},
-            defaultValue = "")
+    @CommandLine.Option(
+            names = {"--param-file", "-P"},
+            defaultValue = ""
+    )
     private List<String> paramFiles;
 
-    @CommandLine.Option(names = {"--param-query", "-p"},
-            defaultValue = "")
+    @CommandLine.Option(
+            names = {"--param-query", "-p"},
+            defaultValue = ""
+    )
     private List<String> paramQueries;
 
 
@@ -100,6 +130,7 @@ class Options implements Callable<Integer> {
 
 
     Optional<Path> getTablesRootPath() {
+
         return this.tablesRoot.trim().isEmpty()
                 ? Optional.empty()
                 : Optional.of(Paths.get(this.tablesRoot.trim()));
@@ -107,30 +138,35 @@ class Options implements Callable<Integer> {
 
 
     Optional<Path> getQueryFilePath() {
+
         return this.queryFile.trim().isEmpty()
                 ? Optional.empty()
                 : Optional.of(Paths.get(this.queryFile.trim()));
     }
 
     Optional<String> getQuery() {
+
         return this.query.trim().isEmpty()
                 ? Optional.empty()
                 : Optional.of(this.query.trim());
     }
 
     Optional<Path> getTestQueryFilePath() {
+
         return this.testQueryFile.trim().isEmpty()
                 ? Optional.empty()
                 : Optional.of(Paths.get(this.testQueryFile.trim()));
     }
 
     Optional<String> getTestQuery() {
+
         return this.testQuery.trim().isEmpty()
                 ? Optional.empty()
                 : Optional.of(this.testQuery.trim());
     }
 
     Optional<Path> getLogDir() {
+
         return this.logDir.trim().isEmpty()
                 ? Optional.empty()
                 : Optional.of(Paths.get(this.logDir.trim()));
@@ -138,37 +174,45 @@ class Options implements Callable<Integer> {
 
 
     List<Path> getSetupFilePaths() {
+
         return toPath(filter(this.setupFiles));
     }
 
     List<Path> getComponentFilePath() {
+
         return toPath(filter(this.componentsFiles));
     }
 
     List<Path> getParamFilePaths() {
+
         return toPath(filter(this.paramFiles));
     }
 
     List<String> getSetupQueries() {
+
         return filter(this.setupQueries);
     }
 
     List<String> getComponentsQueries() {
+
         return filter(this.componentsQueries);
     }
 
     List<String> getParamQueries() {
+
         return filter(this.paramQueries);
     }
 
 
     @Override
     public Integer call() {
+
         Options.parsed.set(this);
         return 0;
     }
 
     private Optional<String> getError() {
+
         if (this.getRootPath().toFile().exists())
             return Optional.of("error: root directory already exists: " + this.getRootPath());
 
@@ -201,19 +245,22 @@ class Options implements Callable<Integer> {
 
 
     private static List<Path> toPath(final Collection<String> source) {
+
         return source.stream()
-                .map(Paths::get)
-                .collect(freezer());
+                     .map(Paths::get)
+                     .collect(freezer());
     }
 
     private static List<Path> nonExisting(final Collection<Path> source) {
+
         return source.stream()
-                .filter(it -> !it.toFile().exists())
-                .collect(freezer());
+                     .filter(it -> !it.toFile().exists())
+                     .collect(freezer());
     }
 
 
     static Options parseArgs(final String... args) throws OptionsException {
+
         final int execute = new CommandLine(new Options()).execute(args);
         final Options instance = Options.parsed.get();
         Options.parsed.remove();
@@ -232,9 +279,11 @@ class Options implements Callable<Integer> {
 
 
     public static final class OptionsException extends Exception {
-        public OptionsException(final String message) {
+
+        OptionsException(final String message) {
             super(message);
         }
+
     }
 
 }

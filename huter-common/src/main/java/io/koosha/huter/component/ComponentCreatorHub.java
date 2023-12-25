@@ -1,7 +1,7 @@
 package io.koosha.huter.component;
 
-import io.koosha.huter.runner.HuterContext;
 import io.koosha.huter.internal.PathToContentFun;
+import io.koosha.huter.runner.HuterContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,25 +44,38 @@ public final class ComponentCreatorHub {
 
         switch (type.toUpperCase()) {
             case "DATABASE":
-                this.dbCreator.create(ctx, this.reader, dataPath,
-                        param.trim().split(COMMENT_SEPARATOR_REGEX)[0].trim());
+                this.dbCreator.create(
+                        ctx,
+                        this.reader,
+                        dataPath,
+                        param.trim().split(COMMENT_SEPARATOR_REGEX)[0].trim()
+                );
                 break;
 
             case "FUNCTION":
-                this.functionCreator.create(ctx, this.reader, dataPath,
-                        param.trim().split(COMMENT_SEPARATOR_REGEX)[0].trim());
+                this.functionCreator.create(
+                        ctx,
+                        this.reader,
+                        dataPath,
+                        param.trim().split(COMMENT_SEPARATOR_REGEX)[0].trim()
+                );
                 break;
 
             case "TABLEFILE":
             case "TABLE_FILE":
             case "TABLE":
             case "FILE":
-                this.fileBasedTableCreator.create(ctx, this.reader, dataPath,
-                        param.trim().split(COMMENT_SEPARATOR_REGEX)[0].trim());
+                this.fileBasedTableCreator.create(
+                        ctx,
+                        this.reader,
+                        dataPath,
+                        param.trim().split(COMMENT_SEPARATOR_REGEX)[0].trim()
+                );
                 break;
 
             default:
-                this.findComponentCreator(type).create(ctx, this.reader, dataPath, param);
+                this.findComponentCreator(type)
+                    .create(ctx, this.reader, dataPath, param);
         }
     }
 

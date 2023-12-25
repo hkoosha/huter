@@ -8,21 +8,23 @@ import org.apache.hadoop.hive.cli.CliDriver;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.Deadline;
 import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.ql.lockmgr.LockException;
 import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hive.service.cli.HiveSQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.InputStream;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static io.koosha.huter.internal.HuterCollections.freezer;
 
 public final class DefaultRunner extends CloseableManager implements HuterRunner {
 
@@ -33,19 +35,23 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
     private final HuterContext ctx;
     private final ComponentCreatorHub componentCreatorHub;
 
-    public DefaultRunner(final HuterContext ctx) {
+    private DefaultRunner(final HuterContext ctx) {
 
         this.ctx = Objects.requireNonNull(ctx, "ctx can not be null");
 
-        this.componentCreatorHub = new ComponentCreatorHub(path ->
-                HuterFiles.readFile(path.isAbsolute()
-                        ? path
-                        : ctx.getTableDefinitionsRootDir().resolve(path))
-        );
+        this.componentCreatorHub = new ComponentCreatorHub(path -> HuterFiles.readFile(
+                path.isAbsolute() ? path : ctx.getTableDefinitionsRootDir().resolve(path)
+        ));
+    }
+
+    public static HuterRunner of(final HuterContext ctx) {
+
+        return new DefaultRunner(ctx);
     }
 
     @Override
     public List<Object[]> run() throws Exception {
+
         LOG.info("init");
         this.init();
 
@@ -70,6 +76,7 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
     // ------------------------------------------------------------------- INIT
 
     private void init() throws Exception {
+
         LOG.trace("opening context");
 
         this.initDirs();
@@ -84,10 +91,17 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
 
     private void initMetastore() throws Exception {
 
-        final String[] sql = String.join("\n", Files.readAllLines(
-                        Paths.get("/opt/hive3/scripts/metastore/upgrade/derby/hive-schema-3.1.0.derby.sql")))
-                .replace("\"APP\".", "")
-                .split(";");
+        final InputStream derbyInitResource = this.getClass().getResourceAsStream("/hive-schema-3.1.0.derby.sql");
+        if (derbyInitResource == null)
+            throw new IllegalStateException("/hive-schema-3.1.0.derby.sql missing from resources");
+
+        final String derbyInit = new Scanner(derbyInitResource, "UTF-8").useDelimiter("\\A").next();
+
+        final Collection<String> sql = Arrays
+                .stream(derbyInit.replace("\"APP\".", "").split(";"))
+                .map(String::trim)
+                .filter(it -> !it.isEmpty())
+                .collect(Collectors.toList());
 
         try (final Connection conn = DriverManager.getConnection(this.ctx.getConnectionStr())) {
             for (final String s : sql) {
@@ -99,6 +113,7 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
     }
 
     private void initDirs() throws IOException {
+
         HuterFiles.ensureDirectories(this.ctx.getOutDir());
         HuterFiles.ensureDirectories(this.ctx.getHiveJarDir());
     }
@@ -132,7 +147,7 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
         this.ctx.init(this.ctx.getHiveConf());
         this.addClosable(this.ctx);
 
-        LOG.info("starting new session state.");
+        // LOG.info("starting new session state.");
         // final CliSessionState cliSession = new CliSessionState(this.ctx.getHiveConf());
         // SessionState.start(cliSession);
         // SessionState.setCurrentSessionState(cliSession);
@@ -146,10 +161,13 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
 
         try (final Connection conn = DriverManager.getConnection(this.ctx.getConnectionStr());
              final Statement stmt = conn.createStatement()) {
+
+            // noinspection SqlResolve
             stmt.execute(
                     "ALTER TABLE APP.COLUMNS_V2 " +
                             "ALTER COLUMN COMMENT " +
-                            "SET DATA TYPE varchar(8096)");
+                            "SET DATA TYPE varchar(8096)"
+            );
         }
 
         // final List<String> tablesToTruncate = new ArrayList<>();
@@ -205,7 +223,7 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
         }
     }
 
-    private void execute() throws HiveSQLException {
+    private void execute() throws HiveSQLException, LockException {
 
         if (!ctx.getQuery().isPresent())
             return;
@@ -217,15 +235,19 @@ public final class DefaultRunner extends CloseableManager implements HuterRunner
 
     private List<Object[]> test() throws HiveSQLException {
 
-        if (!ctx.getTestQuery().isPresent())
+        if (!ctx.getTestQuery().isPresent()) {
+            this.ctx.setTestResult(Collections.emptyList());
             return Collections.emptyList();
+        }
 
         final List<Object[]> result = this.ctx.executeSql(this.ctx.getTestQuery().get());
         LOG.debug("test query result: {}", result);
 
-        this.ctx.setTestResult(result.stream()
-                .map(Object[]::clone)
-                .collect(Collectors.toList()));
+        this.ctx.setTestResult(
+                result.stream()
+                      .map(Object[]::clone)
+                      .collect(freezer())
+        );
 
         return result;
     }

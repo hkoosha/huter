@@ -4,5 +4,7 @@
 # Ignore Gradle build output directory
 build
 
-.idea
-derby.log
+/.idea
+/derby.log
+/example/test/out/
+

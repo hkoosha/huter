@@ -23,13 +23,13 @@ def test_the_script(non_auto_cleaned_huter) -> None:
     # there are many options to configure.
     # those beginning with add_... can be specified multiple times.
 
-    # This is where relative table definitions files are resolved from. (corresponds to table_list.txt in Huter)
+    # This is where relative table definitions files are resolved from. (corresponds to dependencies.txt in Huter)
     h.set_table_definitions_root(my_root)
     h.set_query_file(my_root, test_case)  # This is the main query ran before the test query, but after the setup query.
     h.add_setup_file(my_root, workflow, the_test, "setup.hql")  # this is a setup query just ran before the main query.
     h.set_test_query_file(my_root, workflow, the_test, "test_1.hql")  # test given as a file, generates the final output
     h.add_param_file(my_root, workflow, "parameters.ini")  # file containing parameter substitution for all scripts.
-    h.add_table_file(my_root, workflow, "table_list.txt")  # for the syntax of this file, see Huter help on knowledge
+    h.add_table_file(my_root, workflow, "dependencies.txt")  # for the syntax of this file, see Huter help on knowledge
     h.set_name("test_the_script")  # some nice name that appears in the output.
     result = h()  # execute everything and get the result.
     print(result)  # result is a dictionary, containing output and errors.

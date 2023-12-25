@@ -1,11 +1,11 @@
 package io.koosha.huter.main;
 
 import io.koosha.huter.internal.HuterFiles;
+import io.koosha.huter.internal.HuterThrowables;
 import io.koosha.huter.runner.DefaultResultValidator;
 import io.koosha.huter.runner.DefaultRunner;
-import io.koosha.huter.runner.HuterRunner;
 import io.koosha.huter.runner.HuterContext;
-import io.koosha.huter.internal.HuterThrowables;
+import io.koosha.huter.runner.HuterRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +16,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * See also {@link io.koosha.huter.main.HuterRepoMain}.
+ */
 public final class HuterMain {
 
     private static final Logger LOG = LoggerFactory.getLogger(HuterMain.class);
@@ -35,12 +38,12 @@ public final class HuterMain {
         }
         catch (final Options.OptionsException e) {
             LOG.error(e.getMessage());
-            System.exit(1);
+            System.exit(3);
             throw new IllegalStateException();
         }
 
         if (!errors.isEmpty()) {
-            LOG.error("errors: {}", errors);
+            LOG.error("errors:\n{}", String.join("\n", errors));
             System.exit(1);
         }
         else {
@@ -64,7 +67,7 @@ public final class HuterMain {
         }
 
         final List<Object[]> result;
-        try (final HuterRunner hr = new DefaultRunner(ctx)) {
+        try (final HuterRunner hr = DefaultRunner.of(ctx)) {
             result = hr.run();
         }
         catch (final Throwable e) {
@@ -77,43 +80,49 @@ public final class HuterMain {
     }
 
     private static HuterContext createContext(final String... argz) throws IOException, Options.OptionsException {
+
         final Options ops = Options.parseArgs(argz);
 
         final HuterContext ctx = new HuterContext(
-            ops.getRootPath(),
-            ops.getName(),
-            ops.getName());
+                ops.getRootPath(),
+                ops.getName(),
+                ops.getName()
+        );
 
         if (ops.getLogDir().isPresent())
             ctx.setLogDir(ops.getLogDir().get());
 
         if (ops.getTablesRootPath().isPresent()) {
+
             final Path path = ops.getTablesRootPath().get();
             if (!path.toFile().exists() || !path.toFile().isDirectory())
                 throw new Options.OptionsException("tables definition root does not exist or is not a directory: " + path);
             ctx.setTableDefinitionsRootDir(path);
+
         }
         else {
+
             final boolean anyNonAbsolute = ops
-                .getComponentFilePath()
-                .stream()
-                .flatMap(it -> {
-                    try {
-                        return HuterFiles.readAllLines(it).stream();
-                    }
-                    catch (final IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                })
-                .filter(it -> it.startsWith("file"))
-                .map(it -> it.split("\\s", 2))
-                .peek(it -> {
-                    if (it.length != 2)
-                        throw new RuntimeException("invalid table definition line: " + Arrays.toString(it));
-                })
-                .map(it -> it[1])
-                .map(Paths::get)
-                .anyMatch(p -> !p.isAbsolute());
+                    .getComponentFilePath()
+                    .stream()
+                    .flatMap(it -> {
+                        try {
+                            return HuterFiles.readAllLines(it).stream();
+                        }
+                        catch (final IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    })
+                    .filter(it -> it.startsWith("file"))
+                    .map(it -> it.split("\\s", 2))
+                    .peek(it -> {
+                        if (it.length != 2)
+                            throw new RuntimeException("invalid table definition line: " + Arrays.toString(it));
+                    })
+                    .map(it -> it[1])
+                    .map(Paths::get)
+                    .anyMatch(p -> !p.isAbsolute());
+
             if (anyNonAbsolute)
                 throw new Options.OptionsException("a relative table definition file given but table definition root is not set");
         }
